@@ -1,0 +1,228 @@
+/* Sakina — «وِرد اليوم» (daily checklist). Tokens from base.css only. */
+
+/* ───────────── hero ───────────── */
+.cl-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: box-shadow 0.5s var(--ease);
+}
+.cl-hero-text { flex: 1; min-width: 0; }
+.cl-hero-title {
+  font-family: var(--font-ar);
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.5;
+  transition: color 0.4s;
+}
+.cl-hero-sub { margin-top: 2px; font-size: 13.5px; color: var(--muted); }
+.cl-hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cl-hero-meta:empty { display: none; }
+.cl-hero-meta .badge { padding: 4px 12px; }
+.cl-streak { transition: background 0.2s; }
+.cl-streak:hover { background: var(--surface-3); }
+
+.cl-hero.is-complete { box-shadow: var(--glow), var(--shadow), 0 0 46px -14px var(--gold); }
+.cl-hero.is-complete .cl-hero-title { color: var(--gold-2); }
+.cl-hero.celebrate { animation: clGlow 1.8s var(--ease) 1; }
+.cl-hero.celebrate .ring { animation: clPop 0.7s var(--ease) 1; }
+@keyframes clGlow {
+  0% { box-shadow: var(--glow), var(--shadow), 0 0 0 0 var(--gold); }
+  35% { box-shadow: var(--glow), var(--shadow), 0 0 72px -6px var(--gold); }
+  100% { box-shadow: var(--glow), var(--shadow), 0 0 46px -14px var(--gold); }
+}
+@keyframes clPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ───────────── groups ───────────── */
+.cl-st { display: inline-flex; align-items: center; gap: 8px; }
+.cl-lists .section-title .cl-done-edit {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  font-weight: 700;
+  color: var(--gold-2);
+  background: var(--gold-soft);
+}
+
+/* rows travel between the two lists (FLIP), so the lists must not clip them */
+.cl-list { overflow: visible; }
+.cl-list.is-todo { box-shadow: inset 0 0 0 1px var(--line), var(--shadow); }
+.cl-list.is-fin { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+
+.cl-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 68px;
+  padding: 8px;
+  padding-inline-end: 10px;
+}
+.cl-row + .cl-row { border-top: 1px solid var(--line-soft); }
+
+/* the check: a 48px touch target around the 28px round control */
+.cl-tick {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.cl-tick:hover .check:not(.on) { box-shadow: inset 0 0 0 1.6px var(--gold); }
+.cl-tick:active .check { transform: scale(0.88); }
+
+.cl-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--r-md);
+  text-align: start;
+  transition: background 0.18s;
+}
+a.cl-main:hover, button.cl-main:hover { background: var(--surface-2); }
+a.cl-main:active, button.cl-main:active { background: var(--surface-3); }
+div.cl-main { cursor: pointer; }
+.cl-main .row-main { display: block; }
+.cl-main .row-title, .cl-main .row-sub { display: block; }
+.cl-main .row-title { transition: color 0.3s; }
+.cl-main .row-badge { transition: color 0.3s, background 0.3s; }
+
+/* "open the linked reading" affordance */
+.cl-open, .cl-pencil {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  transition: color 0.2s, background 0.2s, transform 0.2s var(--ease);
+}
+.cl-open { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-soft); }
+a.cl-main:hover .cl-open { color: var(--gold-2); background: var(--gold-soft); transform: translateX(-2px); }
+
+/* done rows: soft and struck */
+.cl-row.is-done .row-title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--line);
+  text-decoration-thickness: 1.5px;
+}
+.cl-row.is-done .row-badge { color: var(--muted); background: var(--line-soft); }
+.cl-row.is-done .row-sub { font-variant-numeric: tabular-nums; opacity: 0.85; }
+.cl-row.is-done .cl-open { background: none; box-shadow: none; }
+
+/* ───────────── edit mode ───────────── */
+.cl-edit-row { gap: 4px; padding-inline-start: 6px; }
+.cl-move {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--text-2);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  transition: background 0.2s, color 0.2s, transform 0.15s, opacity 0.2s;
+}
+.cl-move:hover { color: var(--gold-2); background: var(--surface-3); }
+.cl-move:active { transform: scale(0.92); }
+.cl-move:disabled { opacity: 0.3; pointer-events: none; }
+.cl-up svg { transform: rotate(90deg); }
+.cl-down svg { transform: rotate(-90deg); }
+.cl-add { margin-top: 14px; }
+.cl-edit-note { margin: 12px 4px 0; font-size: 12.5px; color: var(--muted); text-align: center; }
+
+.cl-empty-btn { margin-top: 18px; }
+.cl-spacer { height: 76px; } /* keeps the last row clear of the FAB */
+
+/* ───────────── goal form (sheet) ───────────── */
+.cl-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+}
+.cl-icon-opt {
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.cl-icon-opt:active { transform: scale(0.94); }
+.cl-icon-opt[aria-checked='true'] {
+  color: var(--gold-2);
+  background: var(--gold-soft);
+  box-shadow: inset 0 0 0 1.5px var(--gold);
+}
+.cl-select { position: relative; }
+.cl-select .select { padding-inline-end: 40px; text-overflow: ellipsis; }
+.cl-select .icon {
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  color: var(--muted);
+  pointer-events: none;
+}
+.cl-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+  background: var(--gold-soft);
+}
+.cl-hint .icon { color: var(--gold); margin-top: 2px; }
+.input.is-invalid { box-shadow: inset 0 0 0 1.5px var(--danger); }
+.cl-err { color: var(--danger); }
+
+@media (max-width: 380px) {
+  .cl-hero { gap: 16px; padding: 18px; }
+  .cl-hero-title { font-size: 21px; }
+}
+
+/* ───────────── counter goal (tasbih) ───────────── */
+.tasbih-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 26px 0 10px; }
+.tasbih {
+  position: relative;
+  width: min(74vw, 300px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, var(--surface-3), var(--surface) 70%);
+  box-shadow: var(--glow), var(--shadow);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s var(--ease);
+}
+.tasbih:active { transform: scale(0.97); }
+.tasbih-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.tasbih-track { fill: none; stroke: var(--line-soft); stroke-width: 5; }
+.tasbih-bar { fill: none; stroke: var(--gold); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.35s var(--ease); }
+.tasbih-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.tasbih-num { font-size: clamp(44px, 15vw, 68px); font-weight: 700; line-height: 1.1; }
+.tasbih-of { font-size: 15px; color: var(--muted); direction: rtl; }
+.counter-page.is-done .tasbih-num { color: var(--gold-2); }
+.counter-page.is-done .tasbih-bar { stroke: var(--gold-2); }
+.tasbih-status { font-size: 15px; font-weight: 500; color: var(--text-2); text-align: center; min-height: 1.6em; }
+.counter-page.is-done .tasbih-status { color: var(--gold-2); }
+.tasbih-quick { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; }
+.tasbih-quick .chip { min-height: 44px; padding: 0 18px; font-size: 15px; font-weight: 700; }
+.tasbih-quick .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
+.tasbih-hint { margin-top: 22px; text-align: center; font-size: 13px; color: var(--muted); }

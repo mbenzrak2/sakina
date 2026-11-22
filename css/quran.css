@@ -1,0 +1,292 @@
+/* ═══════════════════════════════════════════════════════════════
+   Sakina — Quran (index + reader). Tokens from base.css only.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ───────────── shared ───────────── */
+.q-dot { color: var(--gold); opacity: 0.7; }
+.q-count { font-weight: 500; color: var(--muted); font-size: 13px; }
+.q-empty-action { margin-top: 18px; }
+.q-diamond {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  display: inline-block;
+  transform: rotate(45deg);
+  border: 1px solid var(--gold);
+  background: var(--gold-soft);
+}
+.q-loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 80px; }
+.q-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--gold);
+  animation: qSpin 0.9s linear infinite;
+}
+@keyframes qSpin { to { transform: rotate(360deg); } }
+.q-copy-buffer { position: fixed; top: 0; inset-inline-start: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* controls in the Quran pages: 44px touch targets */
+.q-index .page-header .icon-btn,
+.q-reader .page-header .icon-btn { width: 44px; height: 44px; }
+
+/* ───────────── index ───────────── */
+.q-hero-host:not(:empty) { margin-bottom: 18px; }
+.q-continue { display: block; transition: transform 0.2s var(--ease), filter 0.2s; }
+.q-continue:active { transform: scale(0.985); }
+.q-continue-go {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--gold-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: transform 0.25s var(--ease), background 0.2s;
+}
+.q-continue:hover .q-continue-go { background: var(--gold-soft); transform: translateX(-3px); }
+.q-continue-name { margin-top: 12px; font-family: var(--font-ar); font-weight: 700; font-size: 30px; line-height: 1.5; }
+.q-continue-sub { color: var(--text-2); font-size: 14px; }
+.q-continue .progress { margin-top: 16px; }
+
+.q-tools { display: flex; flex-direction: column; gap: 12px; }
+.q-tools .search input { height: 100%; }
+.q-tools .search input::-webkit-search-cancel-button { filter: grayscale(1); opacity: 0.6; }
+.q-tools .chip { min-height: 44px; padding-inline: 18px; }
+
+.q-row { padding-block: 12px; min-height: 68px; }
+.q-row:active { background: var(--surface-2); }
+/* number set in a small gilded lozenge */
+.q-row .row-badge { position: relative; isolation: isolate; background: none; font-size: 13px; }
+.q-row .row-badge::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  z-index: -1;
+  transform: rotate(45deg);
+  border-radius: 8px;
+  background: var(--gold-soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: transform 0.35s var(--ease);
+}
+.q-row:hover .row-badge::before { transform: rotate(135deg); }
+.q-name { font-family: var(--font-ar); font-weight: 700; font-size: 21px; line-height: 1.55; }
+.q-row-sub { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.q-tr { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: isolate; letter-spacing: 0.01em; }
+.q-row-sub > :last-child { flex: none; }
+.q-type { font-weight: 500; }
+.q-row .row-end .icon { opacity: 0.6; }
+
+/* bookmarks */
+.q-mark { padding: 6px 10px 6px 8px; gap: 6px; }
+.q-mark-link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 8px 6px; border-radius: var(--r-sm); min-height: 56px; }
+.q-mark-title { display: block; font-size: 15px; }
+.q-mark-verse {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-quran);
+  font-size: 16px;
+  line-height: 2.1;
+  color: var(--text-2);
+}
+.q-mark-remove { width: 44px; height: 44px; background: none; box-shadow: none; color: var(--muted); }
+.q-mark-remove:hover { color: var(--danger); background: var(--danger-soft); }
+
+/* ───────────── reader ───────────── */
+.q-reader { --quran-scale: 1; }
+.q-reader .ph-title { font-size: 22px; }
+.q-size:disabled { opacity: 0.35; pointer-events: none; }
+.q-size-glyph { font-family: var(--font-ui); font-weight: 700; font-size: 17px; line-height: 1; letter-spacing: -0.02em; }
+.q-size-sm { font-size: 13.5px; }
+
+.q-content { padding-inline: 4px; }
+
+/* ornate title frame — gradient gold border + inner hairline, CSS only */
+.surah-frame {
+  position: relative;
+  margin: 6px 0 4px;
+  padding: 24px 22px 20px;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background:
+    radial-gradient(260px 120px at 50% 0%, var(--gold-soft), transparent 75%) padding-box,
+    linear-gradient(180deg, var(--surface-2), var(--surface)) padding-box,
+    linear-gradient(135deg, var(--gold), var(--line) 28%, var(--line) 72%, var(--gold)) border-box;
+  box-shadow: var(--shadow);
+}
+.surah-frame::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--r-md) - 5px);
+  pointer-events: none;
+}
+/* gold corner studs */
+.surah-frame::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, var(--gold) 0 2px, transparent 2.5px) top left / 7px 7px no-repeat,
+    radial-gradient(circle, var(--gold) 0 2px, transparent 2.5px) top right / 7px 7px no-repeat,
+    radial-gradient(circle, var(--gold) 0 2px, transparent 2.5px) bottom left / 7px 7px no-repeat,
+    radial-gradient(circle, var(--gold) 0 2px, transparent 2.5px) bottom right / 7px 7px no-repeat;
+  opacity: 0.8;
+}
+.sf-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+}
+.sf-kicker::before, .sf-kicker::after { content: ''; width: 44px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+.sf-kicker::before { transform: scaleX(-1); }
+.sf-name {
+  margin: 2px 0 0;
+  font-family: var(--font-ar);
+  font-weight: 700;
+  font-size: clamp(32px, 9vw, 42px);
+  line-height: 1.6;
+  color: var(--gold-2);
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .sf-name {
+    background: linear-gradient(135deg, var(--gold-2), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+.sf-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; font-size: 13px; color: var(--muted); }
+
+.q-reader .quran-text { font-size: calc(25px * var(--ar-scale) * var(--quran-scale, 1)); }
+.q-basmala {
+  margin: 22px 0 0;
+  text-align: center;
+  line-height: 2.2;
+  color: var(--text);
+}
+.q-verses {
+  margin-top: 14px;
+  text-align: justify;
+  text-justify: inter-word;
+  overflow-wrap: break-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+  -webkit-touch-callout: none;
+}
+.q-basmala + .q-verses { margin-top: 4px; }
+
+.ayah {
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.25s var(--ease);
+}
+@media (hover: hover) {
+  .ayah:hover { background-color: var(--gold-soft); }
+}
+.ayah:active, .ayah.is-open { background-color: var(--gold-soft); }
+.ayah:focus-visible { outline: 1.5px solid var(--gold); outline-offset: 0; background-color: var(--gold-soft); }
+.ayah.is-target { animation: qAyahGlow 2.7s var(--ease) both; }
+@keyframes qAyahGlow {
+  0%, 40% { background-color: color-mix(in srgb, var(--gold) 26%, transparent); }
+  100% { background-color: transparent; }
+}
+
+/* end-of-ayah marker: a small gold roundel with the number in Arabic-Indic digits */
+.ayah-n {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 2.2em;
+  height: 2.2em;
+  padding: 0 0.35em;
+  margin-inline-end: 0.1em;
+  vertical-align: middle;
+  font-family: var(--font-ar);
+  font-size: 0.5em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold-2);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-pill);
+  background: radial-gradient(circle at 50% 30%, var(--gold-soft), transparent 80%);
+  box-shadow: 0 0 0 2.5px var(--gold-soft);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.25s, color 0.25s, transform 0.25s var(--ease);
+}
+.ayah:active .ayah-n { transform: scale(0.92); }
+.ayah.is-marked .ayah-n {
+  color: var(--gold-ink);
+  background: linear-gradient(135deg, var(--gold-2), var(--gold));
+  box-shadow: 0 0 0 2.5px var(--gold-soft), 0 6px 14px -8px var(--gold);
+}
+
+.q-end { margin: 30px 0 6px; }
+
+/* footer: wird button + surah navigation */
+.q-foot { margin-top: 18px; padding-inline: 4px; }
+.q-done { min-height: 54px; font-size: 16.5px; }
+.q-done-hint { margin-top: 10px; text-align: center; font-size: 12.5px; color: var(--muted); }
+.q-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
+.q-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  transition: box-shadow 0.2s, background 0.2s, transform 0.15s;
+}
+.q-nav-btn:hover { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+.q-nav-btn:active { transform: scale(0.98); }
+.q-nav-btn .icon { color: var(--gold); }
+.q-nav-next { justify-content: flex-end; text-align: end; }
+.q-nav-text { display: flex; flex-direction: column; min-width: 0; }
+.q-nav-label { font-size: 12px; color: var(--muted); }
+.q-nav-name { font-family: var(--font-ar); font-weight: 700; font-size: 19px; line-height: 1.5; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ayah sheet */
+.q-sheet-ayah {
+  font-size: calc(22px * var(--ar-scale));
+  line-height: 2.3;
+  padding: 6px 14px 10px;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  flex: none;
+}
+.q-actions { background: var(--surface-2); flex: none; }
+.q-action { min-height: 56px; padding-block: 8px; }
+.q-action:hover { background: var(--surface-3); }
+.q-action:active { background: var(--surface-3); }
+.q-action .row-badge { width: 38px; height: 38px; }
+
+@media (min-width: 700px) {
+  .q-content, .q-foot { padding-inline: 18px; }
+  .surah-frame { padding: 30px 28px 26px; }
+  .q-verses { margin-top: 18px; }
+}
+@media (max-width: 380px) {
+  .q-type { padding-inline: 8px; }
+  .q-row { gap: 12px; padding-inline: 12px; }
+  .q-content, .q-foot { padding-inline: 0; }
+}
