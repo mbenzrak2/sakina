@@ -97,8 +97,13 @@ const COUNTER_GOALS = [
 // is tracked on its own page (see listFasts), not in the daily checklist.
 const goalActive = (g, date) => g.when !== 'bid' || isBidDay(parseKey(date));
 
+// The tahlil said 100 times a day: taken out of the morning adhkar and counted on its own.
+// `dhikr` ("category.item" in data/adhkar.json) makes the counter page show the full text and its takhrij.
+const TAHLIL_GOAL = { id: 'g-tahlil', title: 'لا إله إلا الله وحده لا شريك له', icon: 'beads', link: null, target: 100, dhikr: '1.19' };
+
 const DEFAULT_GOALS = [
   { id: 'g-am', title: 'أذكار الصباح', icon: 'sun', link: { kind: 'adhkar', key: '1:am' } },
+  TAHLIL_GOAL,
   { id: 'g-quran', title: 'وِرد القرآن', icon: 'quran', link: { kind: 'quran' } },
   { id: 'g-salah', title: 'الأذكار بعد الصلوات الخمس', icon: 'beads', link: { kind: 'adhkar', key: '27' } },
   ...COUNTER_GOALS,
@@ -113,8 +118,21 @@ export const SESSION_IDS = { 1: ['am', 'pm'], 27: ['fajr', 'dhuhr', 'asr', 'magh
 /** v2: the "الاستغفار والتوبة" chapter is a set of narrations, not a task → replaced by counter goals. */
 async function migrate() {
   const v = kv.get('schema') || 1;
-  if (v >= 4) return;
+  if (v >= 5) return;
   const goals = kvGet('goals', null);
+  // v5: the 100× tahlil becomes a counter goal of its own. If the user already made one (a goal of 100 whose
+  // title is this dhikr, in Arabic or Latin letters), it is kept — same id, same history — and only renamed.
+  if (goals && !goals.some((g) => g.dhikr === TAHLIL_GOAL.dhikr)) {
+    const plain = (s) => String(s || '').replace(/[ً-ْٰـ]/g, '').replace(/[أإآ]/g, 'ا').toLowerCase();
+    const own = goals.find((g) => Number(g.target) === 100 && /لا اله ال+ا الله|la\s*[ie]laha/.test(plain(g.title)));
+    if (own) Object.assign(own, { title: TAHLIL_GOAL.title, icon: TAHLIL_GOAL.icon, dhikr: TAHLIL_GOAL.dhikr });
+    else {
+      const i = goals.findIndex((g) => g.id === 'g-am');
+      goals.splice(i >= 0 ? i + 1 : goals.length, 0, { ...TAHLIL_GOAL });
+    }
+    await kvSet('goals', goals);
+  }
+  if (v >= 4) { await kvSet('schema', 5); return; }
   // v4: the white-days fast left the daily checklist (3 days a month is not a daily task)
   if (goals && v >= 2) await kvSet('goals', goals.filter((g) => g.id !== 'g-bid'));
   if (goals && v < 2) {
@@ -127,7 +145,7 @@ async function migrate() {
     if (s) s.title = 'الأذكار بعد الصلوات الخمس';
     await kvSet('goals', goals);
   }
-  await kvSet('schema', 4);
+  await kvSet('schema', 5);
 }
 
 /* ───────────── day records ───────────── */
@@ -180,7 +198,7 @@ export const store = {
       tx.onerror = () => reject(tx.error);
     });
     if (!kv.has('installedAt')) await kvSet('installedAt', todayKey());
-    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 4); }
+    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 5); }
     setHijriOffset(this.getSettings().hijriOffset);
     await migrate();
     await updateDay(todayKey(), () => {}); // make sure today exists with a fresh snapshot
@@ -219,7 +237,7 @@ export const store = {
     if (!g.id) { g.id = uid('g-'); goals.push(g); }
     else {
       const i = goals.findIndex((x) => x.id === g.id);
-      if (i >= 0) goals[i] = g; else goals.push(g);
+      if (i >= 0) { if (goals[i].dhikr && !g.dhikr) g.dhikr = goals[i].dhikr; goals[i] = g; } else goals.push(g);
     }
     await kvSet('goals', goals);
     await updateDay(todayKey(), () => {});

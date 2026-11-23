@@ -226,3 +226,7 @@ a.cl-main:hover .cl-open { color: var(--gold-2); background: var(--gold-soft); t
 .tasbih-quick .chip { min-height: 44px; padding: 0 18px; font-size: 15px; font-weight: 700; }
 .tasbih-quick .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
 .tasbih-hint { margin-top: 22px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* full dhikr text above a counter goal */
+.tasbih-dhikr { margin-top: 14px; }
+.tasbih-dhikr .dhikr-text { margin-top: 0; }

@@ -1,5 +1,6 @@
 // Counter goal — a daily tasbih with a target (e.g. 1000 × الصلاة على النبي ﷺ).
 import { store, todayKey } from '../store.js';
+import { loadAdhkar } from '../data.js';
 import { h, icon, pageHeader, iconButton, openSheet, confirmSheet, field, toast, haptic } from '../ui.js';
 
 const fmt = (n) => Number(n || 0).toLocaleString('en-US');
@@ -120,6 +121,20 @@ async function render(root, params) {
     ),
     h('p', { class: 'tasbih-hint' }, 'اضغط الدائرة مع كل مرة، أو أضف دفعة واحدة إن عددتَ بغير التطبيق.'),
   );
+  // a goal tied to a dhikr of the book shows its full text and takhrij (verbatim from data/adhkar.json)
+  if (goal.dhikr) {
+    const [c, i] = String(goal.dhikr).split('.').map(Number);
+    const box = h('div');
+    root.insertBefore(box, root.querySelector('.tasbih-wrap'));
+    loadAdhkar().then((all) => {
+      const cat = all.find((x) => x.id === c);
+      const item = cat && cat.items.find((x) => x.id === i);
+      if (!item || !alive) return;
+      box.append(h('article', { class: 'card dhikr-card tasbih-dhikr' },
+        h('p', { class: 'ar-text dhikr-text' }, item.text),
+        item.ref && h('p', { class: 'dhikr-ref' }, h('span', { class: 'dhikr-ref-label' }, 'التخريج'), item.ref)));
+    }).catch((e) => console.error(e));
+  }
   sync();
 
   const onHide = () => { flush(); };

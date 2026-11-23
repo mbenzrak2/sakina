@@ -176,6 +176,8 @@ export function sessionItems(catKey, session, items) {
   if (catKey === '1' && session) {
     const out = items.filter((it) => {
       const t = bare(it.text);
+      // «… (مائة مرة إذا أصبح)» is counted on its own, as a daily counter goal (TAHLIL_GOAL in store.js)
+      if (/\(مائه مره اذا اصبح\)/.test(t)) return false;
       if (AM_ONLY.test(t)) return session === 'am';
       if (PM_ONLY.test(t)) return session === 'pm';
       return true;
