@@ -25,7 +25,8 @@ export function loadQuran() {
  * "category.item" → [{ s: surah, from?, to? }]  (whole surah when from/to are absent)
  */
 export const QURAN_PARTS = {
-  '2.12': [{ s: 32 }, { s: 67 }],          // «يقرأ ﴿الم﴾ تنزيل السجدة، وتبارك الذي بيده الملك»
+  '1.x-mulk': [{ s: 67 }],                 // added to the evening adhkar (see MULK_PM)
+  '2.12': [{ s: 32 }, { s: 67 }],         // «يقرأ ﴿الم﴾ تنزيل السجدة، وتبارك الذي بيده الملك»
   '88.1': [{ s: 18, from: 1, to: 10 }],    // «من حفظ عشر آيات من أول سورة الكهف»
 };
 
@@ -95,6 +96,73 @@ const bare = (s) => String(s).replace(/[ً-ْٰـ]/g, '').replace(/[أإآ]/g, '
 const AM_ONLY = /\([^()]*اذا اصبح\)\.?\s*$/;
 const PM_ONLY = /\([^()]*اذا امسى\)\.?\s*$/;
 
+/*
+ * Morning / evening wording. In the book one text serves both moments: the morning wording, followed by
+ * «[وإذا أمسى قال: …]». Each session shows only its own wording:
+ *   morning → the bracketed evening notes are removed;
+ *   evening → the evening words given by the book replace the morning words they stand for.
+ * Nothing is written here: the evening words are read from the brackets of the text itself. PM_FORMS only says,
+ * per dhikr, which morning words (matched without tashkeel) each bracket replaces; 'whole' = the bracket is the
+ * complete evening dhikr. If anything does not match, the full original text is shown unchanged.
+ */
+const PM_BRACKET = /\s*\[\s*وإذا أمسى قال:\s*([^\]]*)\]/g;
+const PM_FORMS = {
+  3: ['اصبحنا واصبح الملك لله', 'رب اسالك خير ما في هذا اليوم وخير ما بعده واعوذ بك من شر ما في هذا اليوم وشر ما بعده'],
+  4: 'whole',
+  6: ['اللهم اني اصبحت'],
+  7: ['اللهم ما اصبح بي'],
+  15: 'whole',
+  16: ['اصبحنا على فطره الاسلام'],
+};
+const DIACRITIC = /[ً-ْٰـ]/;
+const plainOf = (s) => bare(s).replace(/[^ء-ي]+/g, ' ').trim();
+
+function morningText(text) {
+  return text.replace(PM_BRACKET, '');
+}
+
+/** [start, end) of the span of `raw` whose letters are `plain` (tashkeel and punctuation ignored), or null. */
+function findSpan(raw, plain) {
+  let p = '';
+  const at = [];
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (DIACRITIC.test(ch)) continue;
+    const b = bare(ch);
+    if (/[ء-ي]/.test(b)) { p += b; at.push(i); }
+    else if (p && !p.endsWith(' ')) { p += ' '; at.push(i); }
+  }
+  const k = p.indexOf(plain);
+  if (k < 0) return null;
+  let end = at[k + plain.length - 1] + 1;
+  while (end < raw.length && DIACRITIC.test(raw[end])) end++;
+  return [at[k], end];
+}
+
+function eveningText(id, text) {
+  const form = PM_FORMS[id];
+  const brackets = [...text.matchAll(PM_BRACKET)].map((m) => m[1].trim().replace(/[.…\s]+$/, ''));
+  if (!form || !brackets.length) return text;
+  if (form === 'whole') return brackets.length === 1 ? `((${brackets[0]})).` : text;
+  if (form.length !== brackets.length) return text;
+  let out = morningText(text);
+  for (let i = 0; i < form.length; i++) {
+    const span = findSpan(out, form[i]);
+    if (!span) return text;
+    out = out.slice(0, span[0]) + brackets[i] + out.slice(span[1]);
+  }
+  return out;
+}
+
+// Added at the user's request: Surat al-Mulk at the end of the evening adhkar. It is NOT part of that chapter in
+// the book (which lists it in أذكار النوم, dhikr 12) — the note under it says so. Its text comes from QURAN_PARTS.
+const MULK_PM = {
+  id: 'x-mulk',
+  text: 'قراءة سورة الملك',
+  count: 1,
+  note: 'إضافة من التطبيق: ليست من باب أذكار الصباح والمساء في «حصن المسلم»، وقد ذكرها الكتاب في أذكار النوم.',
+};
+
 /**
  * The adhkar to read for one session. The rules only apply what the book itself states:
  *  - Morning / evening: a dhikr whose text ends with "(… إذا أصبح)" is morning-only, "(… إذا أمسى)" evening-only.
@@ -106,12 +174,17 @@ const PM_ONLY = /\([^()]*اذا امسى\)\.?\s*$/;
  */
 export function sessionItems(catKey, session, items) {
   if (catKey === '1' && session) {
-    return items.filter((it) => {
+    const out = items.filter((it) => {
       const t = bare(it.text);
       if (AM_ONLY.test(t)) return session === 'am';
       if (PM_ONLY.test(t)) return session === 'pm';
       return true;
+    }).map((it) => {
+      const text = session === 'am' ? morningText(it.text) : eveningText(it.id, it.text);
+      return text === it.text ? it : { ...it, text };
     });
+    if (session === 'pm') out.push(MULK_PM);
+    return out;
   }
   if (catKey === '27' && session) {
     const dawnOrDusk = session === 'fajr' || session === 'maghrib';

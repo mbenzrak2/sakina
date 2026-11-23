@@ -797,6 +797,17 @@ async function renderReader(root, params) {
       if (n === 0) btn.focus();
     }
 
+    // a tap anywhere on the card counts, like the round button (except on its own controls or while selecting text)
+    if (!readOnly) {
+      el.classList.add('tappable');
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, summary, input, textarea')) return;
+        const sel = window.getSelection && window.getSelection();
+        if (sel && !sel.isCollapsed) return;
+        tap();
+      });
+    }
+
     const card = { item, el, sync, isDone: () => current() >= target };
     return card;
   }

@@ -369,3 +369,7 @@
   display: inline-block; margin: 6px 0 14px;
   font-size: 13px; color: var(--gold-2); text-decoration: none;
 }
+
+/* the whole card counts on tap */
+.dhikr-card.tappable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dhikr-card.tappable:not(.done):active { background-color: var(--gold-soft); }
