@@ -46,7 +46,7 @@ Après toute modification d'un fichier, incrémenter `VERSION` dans `sw.js` (et 
 ## Sources et licences
 
 - Adhkar : [rn0x/Adhkar-json](https://github.com/rn0x/Adhkar-json) — « حصن المسلم », Saʿīd b. ʿAlī b. Wahf al-Qaḥṭānī. Textes repris tels quels.
-- Takhrīj (référence affichée sous chaque dhikr) : notes de bas de page de [rn0x/hisn_almuslim_json](https://github.com/rn0x/hisn_almuslim_json), reprises telles quelles. Une référence n'est rattachée à un dhikr que si la correspondance est vérifiée par le script (`tools/build-data.js`) : 248 adhkar sur 267 ; les 19 autres n'affichent aucune référence plutôt qu'une référence incertaine.
+- Takhrīj (référence affichée sous chaque dhikr) : notes de bas de page de [rn0x/hisn_almuslim_json](https://github.com/rn0x/hisn_almuslim_json), reprises telles quelles. Une référence n'est rattachée à un dhikr que si la correspondance est vérifiée par le script (`tools/build-data.js`) : 266 adhkar sur 267 (248 automatiquement, 18 rattachés à la main après lecture des deux sources, table `MANUAL_ITEMS`). Le dernier (72.1) reste sans référence : sa note dans la source paraît tronquée.
 - Règles par moment (`sessionItems` dans `js/data.js`) : matin / soir et après chaque prière, appliquées uniquement d'après ce que le texte du livre énonce.
 - Coran : [risan/quran-json](https://github.com/risan/quran-json) — texte ʿuthmānī. Repris tel quel (114 sourates, 6236 versets vérifiés au build).
 - Polices : Amiri, Amiri Quran, Tajawal — SIL Open Font License.

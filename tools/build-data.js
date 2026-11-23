@@ -74,7 +74,41 @@ function findChapter(title) {
   return score >= 0.8 ? best : null;
 }
 
-const stats = { items: 0, withRef: 0, catsFull: 0, catsNone: [] };
+// Items the automatic matching could not place (the chapter is titled differently in the two editions, or one
+// dhikr here gathers several texts of the other edition). Each was checked by reading both sources side by side.
+// "category.item": [chapter title in hisn_almuslim.json, its expected footnote count, footnote indexes to use]
+// Not included on purpose: 72.1 («اللهم أطعم من أطعمني…») — its footnote reads «مسلم3/ 26», which looks truncated.
+const MANUAL_ITEMS = {
+  '11.1': ['دعاء دخول المسجد', 4, [0, 1, 2, 3]],   // one dhikr here = the four parts referenced separately there
+  '13.1': ['أذكار الأذان', 6, [0]],
+  '13.2': ['أذكار الأذان', 6, [1, 2]],              // reference + when it is said
+  '13.3': ['أذكار الأذان', 6, [3]],
+  '13.4': ['أذكار الأذان', 6, [4]],
+  '13.5': ['أذكار الأذان', 6, [5]],
+  '17.1': ['ما يقول إذا وضع الثوب', 1, [0]],
+  '25.1': ['الصلاة على النبي صلى الله عليه وسلم بعد التشهد', 2, [0]],
+  '25.2': ['الصلاة على النبي صلى الله عليه وسلم بعد التشهد', 2, [1]],
+  '31.1': ['ما يفعل من رأى الرؤيا أو الحلم', 5, [0, 1, 2, 3]], // four actions gathered in one item
+  '33.1': ['الذكر عقب السلام من الوتر', 1, [0]],
+  '80.1': ['دعاء المتزوج لنفسه ودعاء شراء الدابة', 1, [0]],
+  '85.1': ['كفارة المجلس ومايختم به المجالس', 1, [0]],
+  '88.1': ['ما يعصم به من الدجال', 2, [0]],         // footnote 1 only points to other hadith numbers of the book
+  '95.1': ['دعاء ركوب الدابة', 1, [0]],
+  '122.1': ['ما يقول عند التعجب والأمر السار', 2, [0]],
+  '122.2': ['ما يقول عند التعجب والأمر السار', 2, [1]],
+  '131.1': ['كيف كان النبي صلى الله عليه وسلم يسبح ؟', 1, [0]],
+};
+function manualRef(key) {
+  const m = MANUAL_ITEMS[key];
+  if (!m) return null;
+  const title = Object.keys(hisn).find((k) => norm(k) === norm(m[0]));
+  if (!title) throw new Error('manual reference: chapter not found: ' + m[0]);
+  const raw = hisn[title].footnote.map(clean);
+  if (raw.length !== m[1]) throw new Error('source changed, re-check manual reference ' + key);
+  return [...new Set(m[2].map((i) => raw[i]))].join(' — ');
+}
+
+const stats = { items: 0, withRef: 0, manual: 0, catsFull: 0, catsNone: [] };
 const adhkar = read(adhkarSrc).map((c) => {
   const title = String(c.category).replace(/\s+/g, ' ').trim();
   const ch = findChapter(title);
@@ -100,6 +134,10 @@ const adhkar = read(adhkarSrc).map((c) => {
       let bi = -1, bs = 0;
       ch.texts.forEach((t, i) => { const s = dice(nd, t); if (s > bs) { bs = s; bi = i; } });
       if (bi >= 0 && bs >= 0.62 && !taken.has(bi)) { taken.add(bi); item.ref = ch.refs[bi]; got++; stats.withRef++; }
+    }
+    if (!item.ref) {
+      const ref = manualRef(`${c.id}.${d.id}`);
+      if (ref) { item.ref = ref; got++; stats.withRef++; stats.manual++; }
     }
     return item;
   });
