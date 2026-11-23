@@ -93,12 +93,11 @@ const COUNTER_GOALS = [
   { id: 'g-istighfar', title: 'الاستغفار', icon: 'sparkle', link: null, target: 12000 },
   { id: 'g-salawat', title: 'الصلاة على النبي ﷺ', icon: 'heart', link: null, target: 1000 },
 ];
-// A goal with `when: 'bid'` only belongs to the white days (13, 14, 15 of the lunar month).
-const BID_GOAL = { id: 'g-bid', title: 'صيام الأيام البيض', icon: 'moon', link: null, when: 'bid' };
+// A goal with `when: 'bid'` would only belong to the white days. Not used by default: the white-days fast
+// is tracked on its own page (see listFasts), not in the daily checklist.
 const goalActive = (g, date) => g.when !== 'bid' || isBidDay(parseKey(date));
 
 const DEFAULT_GOALS = [
-  BID_GOAL,
   { id: 'g-am', title: 'أذكار الصباح', icon: 'sun', link: { kind: 'adhkar', key: '1:am' } },
   { id: 'g-quran', title: 'وِرد القرآن', icon: 'quran', link: { kind: 'quran' } },
   { id: 'g-salah', title: 'الأذكار بعد الصلوات الخمس', icon: 'beads', link: { kind: 'adhkar', key: '27' } },
@@ -114,15 +113,11 @@ export const SESSION_IDS = { 1: ['am', 'pm'], 27: ['fajr', 'dhuhr', 'asr', 'magh
 /** v2: the "الاستغفار والتوبة" chapter is a set of narrations, not a task → replaced by counter goals. */
 async function migrate() {
   const v = kv.get('schema') || 1;
-  if (v >= 3) return;
-  if (v === 2) {
-    const g = kvGet('goals', null);
-    if (g && !g.some((x) => x.id === BID_GOAL.id)) { g.unshift(BID_GOAL); await kvSet('goals', g); }
-    await kvSet('schema', 3);
-    return;
-  }
+  if (v >= 4) return;
   const goals = kvGet('goals', null);
-  if (goals) {
+  // v4: the white-days fast left the daily checklist (3 days a month is not a daily task)
+  if (goals && v >= 2) await kvSet('goals', goals.filter((g) => g.id !== 'g-bid'));
+  if (goals && v < 2) {
     const i = goals.findIndex((g) => g.id === 'g-istighfar' && g.link && g.link.kind === 'adhkar');
     if (i >= 0) {
       const add = COUNTER_GOALS.filter((c) => c.id === 'g-istighfar' || !goals.some((g) => g.id === c.id));
@@ -130,10 +125,9 @@ async function migrate() {
     }
     const s = goals.find((g) => g.id === 'g-salah' && g.title === 'الأذكار بعد الصلاة');
     if (s) s.title = 'الأذكار بعد الصلوات الخمس';
-    if (!goals.some((x) => x.id === BID_GOAL.id)) goals.unshift(BID_GOAL);
     await kvSet('goals', goals);
   }
-  await kvSet('schema', 3);
+  await kvSet('schema', 4);
 }
 
 /* ───────────── day records ───────────── */
@@ -186,7 +180,7 @@ export const store = {
       tx.onerror = () => reject(tx.error);
     });
     if (!kv.has('installedAt')) await kvSet('installedAt', todayKey());
-    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 3); }
+    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 4); }
     setHijriOffset(this.getSettings().hijriOffset);
     await migrate();
     await updateDay(todayKey(), () => {}); // make sure today exists with a fresh snapshot
@@ -373,6 +367,15 @@ export const store = {
   },
   async deleteCustomCat(id) {
     await kvSet('customCats', kvGet('customCats', []).filter((c) => c.id !== id));
+  },
+
+  /* white-days fasts the user marked as done: { 'YYYY-MM-DD': true } — kept apart from the daily checklist */
+  listFasts() { return kvGet('fasts', {}); },
+  async toggleFast(date = todayKey()) {
+    const f = kvGet('fasts', {});
+    if (f[date]) delete f[date]; else f[date] = true;
+    await kvSet('fasts', f);
+    return !!f[date];
   },
 
   /* favourites: array of category keys ("12", "c:<id>") */

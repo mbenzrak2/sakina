@@ -1,5 +1,5 @@
 // الأيام البيض — the white days (13, 14, 15 of each lunar month): dates, reminders, Hijri adjustment.
-import { store } from '../store.js';
+import { store, dateKey } from '../store.js';
 import { hijriSupported, hijriParts, isBidDay, upcomingBid, formatHijriLong } from '../hijri.js';
 import { h, icon, clear, pageHeader, toast, downloadText, formatDate, formatDayMonth } from '../ui.js';
 import { notifySupported, notifyPermission, enableNotifications, disableNotifications, checkReminder, buildBidCalendar } from '../notify.js';
@@ -48,22 +48,39 @@ async function render(root) {
           n.state === 'today' ? `اليوم ${p.d} — من الأيام البيض`
             : n.state === 'soon' ? `أول الأيام البيض ${inDaysLabel(n.inDays)}`
               : 'لا أيام بيض قريبة'),
-        n.state !== 'none' && h('p', { class: 'small muted' }, n.state === 'today' ? 'تقبّل الله صيامك.' : formatDate(n.date)),
+        n.state === 'soon' && h('p', { class: 'small muted' }, formatDate(n.date)),
+        n.state === 'today' && fastButton(dateKey(now)),
       ),
     );
     hero.classList.toggle('is-today', n.state === 'today');
   }
 
+  // marking a fast is done here, not in the daily checklist
+  function fastButton(key) {
+    const on = !!store.listFasts()[key];
+    return h('button', {
+      type: 'button', class: 'btn btn-sm bid-fast ' + (on ? 'btn-primary' : 'btn-outline'), 'aria-pressed': String(on),
+      onclick: async () => { const now = await store.toggleFast(key); if (now) toast('تقبّل الله صيامك', { icon: 'check' }); paintAll(); },
+    }, on && icon('check', { size: 16, stroke: 2.4 }), on ? 'صمتُ اليوم' : 'صمتُ اليوم؟');
+  }
+
   function paintList() {
     const now = startOfDay(new Date());
     const groups = upcomingBid(6);
+    const fasts = store.listFasts();
+    const year = String(now.getFullYear());
+    const total = Object.keys(fasts).length;
+    const thisYear = Object.keys(fasts).filter((k) => k.startsWith(year)).length;
     clear(listBox).append(
+      total > 0 && h('div', { class: 'grid-2', style: { marginTop: '14px' } },
+        h('div', { class: 'stat' }, h('div', { class: 'stat-value num' }, String(thisYear)), h('div', { class: 'stat-label' }, 'أيام صمتَها هذه السنة')),
+        h('div', { class: 'stat' }, h('div', { class: 'stat-value num' }, String(total)), h('div', { class: 'stat-label' }, 'المجموع'))),
       h('div', { class: 'section-title' }, 'المواعيد القادمة'),
       h('div', { class: 'list' }, groups.map((g) => h('div', { class: 'row bid-row' },
         h('div', { class: 'row-main' },
           h('div', { class: 'row-title' }, g.monthLabel),
           h('div', { class: 'bid-days' }, g.days.map((d) => h('span', { class: 'bid-day' + (dayDiff(d.date, now) === 0 ? ' today' : '') },
-            h('b', { class: 'num' }, String(d.day)), h('span', null, formatDayMonth(d.date))))),
+            h('b', { class: 'num' }, String(d.day)), h('span', null, formatDayMonth(d.date)), fasts[dateKey(d.date)] && icon('check', { size: 14, stroke: 2.6 })))),
           g.month === 12 && h('div', { class: 'row-sub' }, 'يوم 13 من ذي الحجة من أيام التشريق، فلا يُصام.'),
         )))),
     );
@@ -125,7 +142,7 @@ async function render(root) {
     hero, listBox,
     h('div', { class: 'section-title' }, 'التذكير'), notifyBox,
     h('div', { class: 'section-title' }, 'ضبط التاريخ'), offsetBox,
-    h('p', { class: 'bid-note' }, isBidDay() ? 'هدف «صيام الأيام البيض» ظاهر اليوم في وِردك.' : 'يظهر هدف «صيام الأيام البيض» في وِردك تلقائيًّا في هذه الأيام فقط.'),
+    h('p', { class: 'bid-note' }, 'الصيام لا يُضاف إلى وِردك اليومي: تذكيرٌ فقط، وتسجّله من هنا في يومه إن شئت.'),
   );
   paintAll();
   return store.on((type) => { if (type === 'import') paintAll(); });

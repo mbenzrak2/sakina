@@ -594,3 +594,4 @@ body.immersive .fab { bottom: calc(env(safe-area-inset-bottom) + 22px); }
 .bid-offset { min-width: 76px; text-align: center; font-weight: 700; font-size: 14px; direction: rtl; }
 .bid-stepper .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
 .bid-note { margin: 18px 4px 0; font-size: 13px; color: var(--muted); text-align: center; }
+.bid-fast { margin-top: 10px; }

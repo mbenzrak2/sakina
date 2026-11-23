@@ -183,7 +183,7 @@ async function render(root) {
         h('span', { class: 'row-badge' }, icon(g.icon || 'check', { size: 20 })),
         h('span', { class: 'row-main' },
           h('span', { class: 'row-title' }, g.title),
-          h('span', { class: 'row-sub' }, g.when === 'bid' ? 'يظهر في الأيام البيض فقط (13، 14، 15)' : isCounter(g) ? `عدّاد: ${fmt(g.target)} مرة` : g.link ? `مرتبط: ${linkLabel(g.link)}` : 'بدون ربط'),
+          h('span', { class: 'row-sub' }, isCounter(g) ? `عدّاد: ${fmt(g.target)} مرة` : g.link ? `مرتبط: ${linkLabel(g.link)}` : 'بدون ربط'),
         ),
         h('span', { class: 'cl-pencil' }, icon('edit', { size: 17 })),
       ),
