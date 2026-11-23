@@ -373,3 +373,15 @@
 /* the whole card counts on tap */
 .dhikr-card.tappable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .dhikr-card.tappable:not(.done):active { background-color: var(--gold-soft); }
+
+/* "complete the whole count" (counted on a real tasbih) */
+.dhikr-side { grid-column: 3; justify-self: end; display: grid; justify-items: end; gap: 8px; }
+.dhikr-all {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent;
+  font: inherit; font-size: 12.5px; font-weight: 600; color: var(--gold-2);
+  cursor: pointer; white-space: nowrap;
+}
+.dhikr-all:active { background: var(--gold-soft); }
+.dhikr-all[hidden] { display: none; }

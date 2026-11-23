@@ -1,6 +1,6 @@
 ﻿// Sakina service worker â€” precaches the whole app so it runs with no connection at all.
 // Bump VERSION whenever any file below changes: clients then pick up the new files.
-const VERSION = 'sakina-v1.4.0';
+const VERSION = 'sakina-v1.4.1';
 
 const ASSETS = [
   './',

@@ -733,6 +733,10 @@ async function renderReader(root, params) {
     );
     const undoBtn = h('button', { type: 'button', class: 'icon-btn dhikr-undo', 'aria-label': 'تراجع عن عدّة واحدة', title: 'تراجع', onclick: () => undo() }, icon('minus', { size: 20 }));
     const statusEl = h('span', { class: 'dhikr-status' });
+    // for those who counted on a real tasbih: mark the whole count at once
+    const allBtn = target > 1 && h('button', {
+      type: 'button', class: 'dhikr-all', title: 'أتممتُ العدد كاملًا', 'aria-label': `أتممتُ العدد كاملًا: ${target}`, onclick: () => tap(true),
+    }, icon('check', { size: 15, stroke: 2.6 }), 'أتممتُه كاملًا');
     const liveEl = h('span', { class: 'adhkar-sr', 'aria-live': 'polite' });
 
     const el = h('article', { class: 'card dhikr-card', dataset: { item: String(item.id) } },
@@ -749,7 +753,7 @@ async function renderReader(root, params) {
       !isCustom && QURAN_PARTS[`${cat.key}.${item.id}`] && quranParts(QURAN_PARTS[`${cat.key}.${item.id}`]),
       // takhrij: taken verbatim from the footnotes of حصن المسلم (see tools/build-data.js)
       item.ref && h('p', { class: 'dhikr-ref' }, h('span', { class: 'dhikr-ref-label' }, 'التخريج'), item.ref),
-      !readOnly && h('div', { class: 'dhikr-foot' }, undoBtn, btn, statusEl),
+      !readOnly && h('div', { class: 'dhikr-foot' }, undoBtn, btn, h('div', { class: 'dhikr-side' }, statusEl, allBtn)),
       liveEl,
     );
 
@@ -761,13 +765,16 @@ async function renderReader(root, params) {
       ringBar.style.strokeDashoffset = String(RING_C * (1 - n / target));
       btn.setAttribute('aria-label', done ? `اكتمل هذا الذكر: ${target} من ${target}` : `عُدّ الذكر: ${n} من ${target}`);
       undoBtn.hidden = n === 0;
+      if (allBtn) allBtn.hidden = done;
       statusEl.textContent = done ? 'اكتمل' : n > 0 ? `المتبقي ${target - n}` : '';
     }
-    function tap() {
+    let beforeAll = null; // count before "complete all", so that undo gives it back
+    function tap(all) {
       checkDay();
       const cur = current();
       if (cur >= target) return;
-      const n = cur + 1;
+      const n = all === true ? target : cur + 1;
+      beforeAll = all === true ? cur : null;
       counts[item.id] = n;
       persist(pkey, item.id, n);
       const done = n >= target;
@@ -786,7 +793,8 @@ async function renderReader(root, params) {
       checkDay();
       const cur = current();
       if (cur <= 0) return;
-      const n = cur - 1;
+      const n = beforeAll != null && cur >= target ? beforeAll : cur - 1;
+      beforeAll = null;
       counts[item.id] = n;
       persist(pkey, item.id, n);
       haptic(8);
