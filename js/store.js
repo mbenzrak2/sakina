@@ -8,6 +8,8 @@
 // `goals` inside a day record is a snapshot of the goals that existed that day, so the
 // history stays truthful even if the user later renames / deletes goals.
 
+import { setHijriOffset, isBidDay } from './hijri.js';
+
 const DB_NAME = 'sakina';
 const DB_VERSION = 1;
 
@@ -79,7 +81,9 @@ async function kvSet(key, value) {
 
 /* ───────────── defaults ───────────── */
 
-const DEFAULT_SETTINGS = { theme: 'dark', arScale: 1 };
+// hijriOffset: days added to the calculated Hijri date to match the local moon sighting (-2 … +2)
+// notify: remind the user of the white days (see notify.js)
+const DEFAULT_SETTINGS = { theme: 'dark', arScale: 1, hijriOffset: 0, notify: false };
 
 // link.kind 'adhkar' → link.key is a progress key ("1:am", "2", "c:<customCatId>")
 // link.kind 'quran'  → completed from the Quran reader ("تمّ وِرد اليوم")
@@ -89,7 +93,12 @@ const COUNTER_GOALS = [
   { id: 'g-istighfar', title: 'الاستغفار', icon: 'sparkle', link: null, target: 12000 },
   { id: 'g-salawat', title: 'الصلاة على النبي ﷺ', icon: 'heart', link: null, target: 1000 },
 ];
+// A goal with `when: 'bid'` only belongs to the white days (13, 14, 15 of the lunar month).
+const BID_GOAL = { id: 'g-bid', title: 'صيام الأيام البيض', icon: 'moon', link: null, when: 'bid' };
+const goalActive = (g, date) => g.when !== 'bid' || isBidDay(parseKey(date));
+
 const DEFAULT_GOALS = [
+  BID_GOAL,
   { id: 'g-am', title: 'أذكار الصباح', icon: 'sun', link: { kind: 'adhkar', key: '1:am' } },
   { id: 'g-quran', title: 'وِرد القرآن', icon: 'quran', link: { kind: 'quran' } },
   { id: 'g-salah', title: 'الأذكار بعد الصلوات الخمس', icon: 'beads', link: { kind: 'adhkar', key: '27' } },
@@ -104,7 +113,14 @@ export const SESSION_IDS = { 1: ['am', 'pm'], 27: ['fajr', 'dhuhr', 'asr', 'magh
 
 /** v2: the "الاستغفار والتوبة" chapter is a set of narrations, not a task → replaced by counter goals. */
 async function migrate() {
-  if ((kv.get('schema') || 1) >= 2) return;
+  const v = kv.get('schema') || 1;
+  if (v >= 3) return;
+  if (v === 2) {
+    const g = kvGet('goals', null);
+    if (g && !g.some((x) => x.id === BID_GOAL.id)) { g.unshift(BID_GOAL); await kvSet('goals', g); }
+    await kvSet('schema', 3);
+    return;
+  }
   const goals = kvGet('goals', null);
   if (goals) {
     const i = goals.findIndex((g) => g.id === 'g-istighfar' && g.link && g.link.kind === 'adhkar');
@@ -114,9 +130,10 @@ async function migrate() {
     }
     const s = goals.find((g) => g.id === 'g-salah' && g.title === 'الأذكار بعد الصلاة');
     if (s) s.title = 'الأذكار بعد الصلوات الخمس';
+    if (!goals.some((x) => x.id === BID_GOAL.id)) goals.unshift(BID_GOAL);
     await kvSet('goals', goals);
   }
-  await kvSet('schema', 2);
+  await kvSet('schema', 3);
 }
 
 /* ───────────── day records ───────────── */
@@ -124,8 +141,8 @@ async function migrate() {
 function blankDay(date) {
   return { date, goals: [], done: {}, dhikr: {} };
 }
-function snapshotGoals() {
-  return kvGet('goals', []).map((g) => ({ id: g.id, title: g.title }));
+function snapshotGoals(date = todayKey()) {
+  return kvGet('goals', []).filter((g) => goalActive(g, date)).map((g) => ({ id: g.id, title: g.title }));
 }
 async function getDay(date = todayKey()) {
   const rec = await run('days', 'readonly', (os) => os.get(date));
@@ -136,7 +153,7 @@ let writeQueue = Promise.resolve();
 function updateDay(date, mutator) {
   const job = writeQueue.then(async () => {
     const rec = (await getDay(date)) || blankDay(date);
-    if (date === todayKey() || !rec.goals || !rec.goals.length) rec.goals = snapshotGoals();
+    if (date === todayKey() || !rec.goals || !rec.goals.length) rec.goals = snapshotGoals(date);
     mutator(rec);
     await run('days', 'readwrite', (os) => os.put(rec));
     emit('day', { date });
@@ -169,7 +186,8 @@ export const store = {
       tx.onerror = () => reject(tx.error);
     });
     if (!kv.has('installedAt')) await kvSet('installedAt', todayKey());
-    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 2); }
+    if (!kv.has('goals')) { await kvSet('goals', DEFAULT_GOALS); await kvSet('schema', 3); }
+    setHijriOffset(this.getSettings().hijriOffset);
     await migrate();
     await updateDay(todayKey(), () => {}); // make sure today exists with a fresh snapshot
     if (navigator.storage && navigator.storage.persist) {
@@ -184,11 +202,21 @@ export const store = {
 
   /* settings */
   getSettings() { return { ...DEFAULT_SETTINGS, ...kvGet('settings', {}) }; },
-  async setSettings(patch) { await kvSet('settings', { ...this.getSettings(), ...patch }); },
+  async setSettings(patch) {
+    await kvSet('settings', { ...this.getSettings(), ...patch });
+    if ('hijriOffset' in patch) {
+      setHijriOffset(patch.hijriOffset);
+      await updateDay(todayKey(), () => {}); // today's goals may change (white days)
+    }
+  },
   installedAt() { return kvGet('installedAt', todayKey()); },
 
   /* goals (the daily checklist definition) */
+  /** Every goal the user defined (for managing them). */
   listGoals() { return kvGet('goals', []); },
+  /** The goals that apply to a given day (default today): day-specific goals such as the white days are filtered. */
+  goalsFor(date = todayKey()) { return kvGet('goals', []).filter((g) => goalActive(g, date)); },
+  isGoalActive(g, date = todayKey()) { return goalActive(g, date); },
   /** Create (no id) or update (same id) a goal: { id?, title, icon?, link? }. Returns the saved goal. */
   async saveGoal(goal) {
     const goals = kvGet('goals', []);

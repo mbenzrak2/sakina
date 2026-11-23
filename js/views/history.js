@@ -354,7 +354,7 @@ async function render(root) {
       const today = todayKey();
       const rec = await store.getDay(key);
       // today always reflects the live goal list (the store re-snapshots it on every write)
-      const goals = key === today ? store.listGoals() : ((rec && rec.goals) || []);
+      const goals = key === today ? store.goalsFor() : ((rec && rec.goals) || []);
       const done = (rec && rec.done) || {};
       const editable = goals.length > 0 && (key === today || (key === addDays(today, -1) && !!rec));
       const nDone = goals.filter((g) => done[g.id]).length;

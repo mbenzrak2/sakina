@@ -7,6 +7,9 @@ import { routes as quranRoutes } from './views/quran.js';
 import { routes as checklistRoutes } from './views/checklist.js';
 import { routes as historyRoutes } from './views/history.js';
 import { routes as counterRoutes } from './views/counter.js';
+import { routes as bidRoutes } from './views/bid.js';
+import { setHijriOffset } from './hijri.js';
+import { checkReminder } from './notify.js';
 import { routes as settingsRoutes } from './views/settings.js';
 
 const TABS = [
@@ -17,7 +20,7 @@ const TABS = [
   { id: 'history', path: '/history', label: 'السجل', icon: 'history' },
 ];
 
-const ROUTES = [homeRoutes, adhkarRoutes, quranRoutes, checklistRoutes, historyRoutes, counterRoutes, settingsRoutes]
+const ROUTES = [homeRoutes, adhkarRoutes, quranRoutes, checklistRoutes, historyRoutes, counterRoutes, bidRoutes, settingsRoutes]
   .flat()
   .map((r) => ({ ...r, segs: r.path.split('/').filter(Boolean) }));
 
@@ -46,6 +49,7 @@ export function applySettings() {
   const s = store.getSettings();
   const theme = s.theme === 'auto' ? (lightMq.matches ? 'light' : 'dark') : s.theme;
   const root = document.documentElement;
+  setHijriOffset(s.hijriOffset);
   root.dataset.theme = theme;
   root.style.setProperty('--ar-scale', String(s.arScale || 1));
   const meta = document.querySelector('meta[name="theme-color"]');
@@ -144,12 +148,13 @@ async function boot() {
   let lastDay = new Date().toDateString();
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return;
+    checkReminder();
     const now = new Date().toDateString();
     if (now !== lastDay) { lastDay = now; await store.toggleGoal('__noop__', false); render(); }
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW registration failed', e));
+    navigator.serviceWorker.register('sw.js').then(() => checkReminder()).catch((e) => console.warn('SW registration failed', e));
   }
 }
 boot();

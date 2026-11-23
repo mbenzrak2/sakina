@@ -576,3 +576,21 @@ body.immersive .fab { bottom: calc(env(safe-area-inset-bottom) + 22px); }
 .range { accent-color: var(--gold); width: 150px; }
 .about { font-size: 13.5px; color: var(--text-2); line-height: 1.9; }
 .about a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ───────────── white days (الأيام البيض) ───────────── */
+.bid-card { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding: 14px 16px; }
+.bid-hero { display: flex; align-items: center; gap: 18px; }
+.bid-moon { width: 64px; height: 64px; flex: none; display: grid; place-items: center; border-radius: 22px; color: var(--gold-2); background: var(--gold-soft); box-shadow: inset 0 0 0 1px var(--line); }
+.bid-hero.is-today .bid-moon { color: var(--gold-ink); background: linear-gradient(135deg, var(--gold-2), var(--gold)); }
+.bid-title { font-family: var(--font-ar); font-size: 23px; line-height: 1.6; }
+.bid-row { align-items: flex-start; }
+.bid-days { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.bid-day { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: var(--r-pill); font-size: 13px; color: var(--text-2); background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line-soft); }
+.bid-day b { color: var(--gold-2); }
+.bid-day.today { color: var(--gold-ink); background: linear-gradient(135deg, var(--gold-2), var(--gold)); box-shadow: none; }
+.bid-day.today b { color: var(--gold-ink); }
+.bid-wrap { white-space: normal; }
+.bid-stepper { display: flex; align-items: center; gap: 8px; flex: none; }
+.bid-offset { min-width: 76px; text-align: center; font-weight: 700; font-size: 14px; direction: rtl; }
+.bid-stepper .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
+.bid-note { margin: 18px 4px 0; font-size: 13px; color: var(--muted); text-align: center; }

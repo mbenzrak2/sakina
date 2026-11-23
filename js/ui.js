@@ -1,4 +1,5 @@
 // Sakina — shared UI helpers. No framework: small DOM builder + a few components.
+import { formatHijriLong } from './hijri.js';
 
 /* ───────────── DOM builder ───────────── */
 
@@ -232,7 +233,7 @@ try { fmtHijri = new Intl.DateTimeFormat('ar-u-ca-islamic-umalqura-nu-latn', { d
 export const formatDate = (d) => fmtLong.format(d);
 export const formatDayMonth = (d) => fmtShort.format(d);
 export const formatMonth = (d) => fmtMonth.format(d);
-export const formatHijri = (d) => (fmtHijri ? fmtHijri.format(d) : '');
+export const formatHijri = (d) => formatHijriLong(d); // follows the user's Hijri adjustment
 
 /** Arabic plural helper for days: 1 → "يوم واحد", 2 → "يومان", 3-10 → "N أيام", else "N يومًا" */
 export function daysLabel(n) {

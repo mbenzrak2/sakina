@@ -96,8 +96,9 @@ async function render(root) {
 
   /* ── hero ── */
   function drawHero() {
-    const total = goals.length;
-    const doneCount = goals.filter((g) => done[g.id]).length;
+    const act = goals.filter((g) => store.isGoalActive(g));
+    const total = act.length;
+    const doneCount = act.filter((g) => done[g.id]).length;
     const left = total - doneCount;
     const ratio = total ? doneCount / total : 0;
     const complete = total > 0 && left === 0;
@@ -182,7 +183,7 @@ async function render(root) {
         h('span', { class: 'row-badge' }, icon(g.icon || 'check', { size: 20 })),
         h('span', { class: 'row-main' },
           h('span', { class: 'row-title' }, g.title),
-          h('span', { class: 'row-sub' }, isCounter(g) ? `عدّاد: ${fmt(g.target)} مرة` : g.link ? `مرتبط: ${linkLabel(g.link)}` : 'بدون ربط'),
+          h('span', { class: 'row-sub' }, g.when === 'bid' ? 'يظهر في الأيام البيض فقط (13، 14، 15)' : isCounter(g) ? `عدّاد: ${fmt(g.target)} مرة` : g.link ? `مرتبط: ${linkLabel(g.link)}` : 'بدون ربط'),
         ),
         h('span', { class: 'cl-pencil' }, icon('edit', { size: 17 })),
       ),
@@ -229,8 +230,9 @@ async function render(root) {
       return;
     }
 
-    const todo = goals.filter((g) => !done[g.id]);
-    const fin = goals.filter((g) => done[g.id]);
+    const act = goals.filter((g) => store.isGoalActive(g));
+    const todo = act.filter((g) => !done[g.id]);
+    const fin = act.filter((g) => done[g.id]);
     if (todo.length) {
       listsBox.append(
         sectionTitle('المتبقي', todo.length),

@@ -1,6 +1,8 @@
 // Home — today's overview.
 import { store } from '../store.js';
 import { loadQuran } from '../data.js';
+import { hijriSupported } from '../hijri.js';
+import { nextBid, inDaysLabel } from './bid.js';
 import { h, icon, clear, ring, iconButton, navigate, formatDate, formatHijri, daysLabel, haptic } from '../ui.js';
 
 const MARK =
@@ -44,9 +46,24 @@ async function render(root) {
 
   const hero = h('section', { class: 'card hero' });
   const remainingBox = h('div');
+  const bidBox = h('div');
+  const paintBid = () => {
+    clear(bidBox);
+    if (!hijriSupported()) return;
+    const n = nextBid();
+    if (n.state === 'none') return;
+    const near = n.state === 'today' || n.inDays <= 3;
+    bidBox.append(h('a', { class: 'card bid-card' + (near ? ' gilded' : ''), href: '#/bid' },
+      h('div', { class: 'row-badge' }, icon('moon', { size: 22 })),
+      h('div', { class: 'row-main' },
+        h('div', { class: 'row-title' }, n.state === 'today' ? 'اليوم من الأيام البيض — صيام' : 'الأيام البيض ' + inDaysLabel(n.inDays)),
+        h('div', { class: 'row-sub' }, n.state === 'today' ? `اليوم ${n.day} من الشهر الهجري` : formatDate(n.date))),
+      h('div', { class: 'row-end' }, icon('chevron', { size: 20 }))));
+  };
   const quick = h('div', { class: 'grid-2' });
   const cont = h('div');
-  root.append(brand, hero, remainingBox,
+  paintBid();
+  root.append(brand, hero, bidBox, remainingBox,
     h('div', { class: 'section-title' }, 'وصول سريع'), quick, cont);
 
   const isMorning = now.getHours() < 15;
@@ -84,7 +101,7 @@ async function render(root) {
   async function paint() {
     const [day, stats] = await Promise.all([store.getDay(), store.stats()]);
     const s = store.dayStats(day);
-    const goals = store.listGoals();
+    const goals = store.goalsFor();
     const left = goals.filter((g) => !(day && day.done[g.id]));
 
     clear(hero).append(
@@ -122,6 +139,7 @@ async function render(root) {
   return store.on((type) => {
     if (type === 'day' || type === 'goals' || type === 'import') paint();
     if (type === 'quran' || type === 'import') paintContinue();
+    if (type === 'settings' || type === 'import') paintBid();
   });
 }
 
