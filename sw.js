@@ -1,6 +1,6 @@
-// Sakina service worker — precaches the whole app so it runs with no connection at all.
+﻿// Sakina service worker â€” precaches the whole app so it runs with no connection at all.
 // Bump VERSION whenever any file below changes: clients then pick up the new files.
-const VERSION = 'sakina-v1.2.2';
+const VERSION = 'sakina-v1.3.0';
 
 const ASSETS = [
   './',
@@ -80,7 +80,7 @@ self.addEventListener('fetch', (event) => {
   })());
 });
 
-/* ───────────── white-days reminder (periodic background sync, installed app on Chrome/Android) ───────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ white-days reminder (periodic background sync, installed app on Chrome/Android) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 // Same rule as bidMessage() in js/notify.js; duplicated because a classic service worker cannot import modules.
 const META = 'sakina-meta';
 
@@ -120,8 +120,8 @@ async function bidReminder() {
   const today = hijriDay(now, s.hijriOffset);
   const tomorrow = hijriDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1), s.hijriOffset);
   let msg = null;
-  if (isBid(tomorrow) && now.getHours() >= 15) msg = { slot: 'eve', title: 'غدًا من الأيام البيض', body: `غدًا يوم ${tomorrow.d} من الشهر الهجري. انوِ الصيام ولا تنسَ السحور.` };
-  else if (isBid(today)) msg = { slot: 'day', title: 'اليوم من الأيام البيض', body: `اليوم ${today.d} من الشهر الهجري — يوم صيام.` };
+  if (isBid(tomorrow) && now.getHours() >= 15) msg = { slot: 'eve', title: 'ØºØ¯Ù‹Ø§ Ù…Ù† Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ø¨ÙŠØ¶', body: `ØºØ¯Ù‹Ø§ ÙŠÙˆÙ… ${tomorrow.d} Ù…Ù† Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ù‡Ø¬Ø±ÙŠ. Ø§Ù†ÙˆÙ Ø§Ù„ØµÙŠØ§Ù… ÙˆÙ„Ø§ ØªÙ†Ø³ÙŽ Ø§Ù„Ø³Ø­ÙˆØ±.` };
+  else if (isBid(today)) msg = { slot: 'day', title: 'Ø§Ù„ÙŠÙˆÙ… Ù…Ù† Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ø¨ÙŠØ¶', body: `Ø§Ù„ÙŠÙˆÙ… ${today.d} Ù…Ù† Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ù‡Ø¬Ø±ÙŠ â€” ÙŠÙˆÙ… ØµÙŠØ§Ù….` };
   if (!msg) return;
   const stamp = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}:${msg.slot}`;
   const meta = await caches.open(META);

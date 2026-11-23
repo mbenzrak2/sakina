@@ -349,3 +349,23 @@
   color: var(--gold-2);
 }
 .read-only .dhikr-card { padding-bottom: 20px; }
+
+/* Quran passage written out under a dhikr that only names it */
+.dhikr-quran { margin-top: 14px; display: grid; gap: 10px; }
+.dhikr-surah { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 0 14px; }
+.dhikr-surah > summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; cursor: pointer; list-style: none;
+}
+.dhikr-surah > summary::-webkit-details-marker { display: none; }
+.dhikr-surah-name { font-weight: 700; color: var(--gold-2); }
+.dhikr-surah-range { flex: 1; font-size: 12.5px; color: var(--muted); }
+.dhikr-surah-chev { color: var(--muted); transition: transform 0.25s var(--ease); }
+.dhikr-surah[open] .dhikr-surah-chev { transform: rotate(-90deg); }
+.dhikr-surah[open] > summary { border-bottom: 1px solid var(--line); }
+.dhikr-basmala { margin-top: 12px; text-align: center; line-height: 2.2; }
+.dhikr-quran-text { margin-top: 6px; overflow-wrap: anywhere; }
+.dhikr-surah-link {
+  display: inline-block; margin: 6px 0 14px;
+  font-size: 13px; color: var(--gold-2); text-decoration: none;
+}

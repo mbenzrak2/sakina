@@ -20,6 +20,16 @@ export function loadQuran() {
 }
 
 /**
+ * Adhkar whose text only NAMES a passage of the Quran instead of quoting it. The reader shows the passage
+ * itself under the dhikr, taken from data/quran.json, for those who have not memorised it.
+ * "category.item" → [{ s: surah, from?, to? }]  (whole surah when from/to are absent)
+ */
+export const QURAN_PARTS = {
+  '2.12': [{ s: 32 }, { s: 67 }],          // «يقرأ ﴿الم﴾ تنزيل السجدة، وتبارك الذي بيده الملك»
+  '88.1': [{ s: 18, from: 1, to: 10 }],    // «من حفظ عشر آيات من أول سورة الكهف»
+};
+
+/**
  * Category keys
  *   "12"      built-in category 12
  *   "c:<id>"  user category

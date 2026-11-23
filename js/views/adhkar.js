@@ -5,14 +5,42 @@
 
 import { store, todayKey } from '../store.js';
 import {
-  loadAdhkar, getCategory, splitPkey, pkeyTitle, normalizeAr, AM_PM_CATEGORY,
-  SESSIONS, defaultSession, sessionItems, READ_ONLY,
+  loadAdhkar, loadQuran, getCategory, splitPkey, pkeyTitle, normalizeAr, AM_PM_CATEGORY,
+  SESSIONS, defaultSession, sessionItems, READ_ONLY, QURAN_PARTS,
 } from '../data.js';
 import {
-  h, icon, pageHeader, iconButton, openSheet, confirmSheet, field, toast, navigate, haptic, debounce,
+  h, icon, toArabicDigits, pageHeader, iconButton, openSheet, confirmSheet, field, toast, navigate, haptic, debounce,
 } from '../ui.js';
 
 /* ───────────── shared helpers ───────────── */
+
+/** The Quran passages a dhikr names without quoting them, written out in full (text from data/quran.json). */
+function quranParts(parts) {
+  const box = h('div', { class: 'dhikr-quran' });
+  loadQuran().then((quran) => {
+    for (const p of parts) {
+      const s = quran[p.s - 1];
+      if (!s) continue;
+      const from = p.from || 1;
+      const to = Math.min(p.to || s.n, s.n);
+      const whole = from === 1 && to === s.n;
+      const verses = h('p', { class: 'quran-text dhikr-quran-text' });
+      for (let a = from; a <= to; a++) {
+        verses.append(s.verses[a - 1], ' ', h('span', { class: 'ayah-n' }, toArabicDigits(a)), ' ');
+      }
+      box.append(h('details', { class: 'dhikr-surah', open: true },
+        h('summary', null,
+          h('span', { class: 'dhikr-surah-name' }, 'سورة ' + s.name),
+          h('span', { class: 'dhikr-surah-range' }, whole ? `${toArabicDigits(s.n)} آية` : `الآيات ${toArabicDigits(from)} – ${toArabicDigits(to)}`),
+          icon('chevron', { size: 18, class: 'dhikr-surah-chev' })),
+        // the basmala opens every surah but 1 (where it is ayah 1) and 9
+        from === 1 && p.s !== 1 && p.s !== 9 && h('p', { class: 'quran-text dhikr-basmala' }, quran[0].verses[0]),
+        verses,
+        h('a', { class: 'dhikr-surah-link', href: `#/quran/${p.s}` }, 'فتح السورة في المصحف')));
+    }
+  }).catch(() => box.append(h('p', { class: 'dhikr-note' }, 'تعذّر تحميل نص السورة.')));
+  return box;
+}
 
 const QUICK = [
   { key: '1:am', title: 'أذكار الصباح', icon: 'sun' },
@@ -718,6 +746,7 @@ async function renderReader(root, params) {
       ),
       h('p', { class: 'ar-text dhikr-text' }, item.text),
       item.note && h('p', { class: 'dhikr-note' }, item.note),
+      !isCustom && QURAN_PARTS[`${cat.key}.${item.id}`] && quranParts(QURAN_PARTS[`${cat.key}.${item.id}`]),
       // takhrij: taken verbatim from the footnotes of حصن المسلم (see tools/build-data.js)
       item.ref && h('p', { class: 'dhikr-ref' }, h('span', { class: 'dhikr-ref-label' }, 'التخريج'), item.ref),
       !readOnly && h('div', { class: 'dhikr-foot' }, undoBtn, btn, statusEl),
