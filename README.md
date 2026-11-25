@@ -21,6 +21,8 @@ Un service worker exige HTTPS. Publier le dossier tel quel sur un hébergement s
 - **القرآن** — 114 sourates (rasm ʿuthmānī), recherche, signets, reprise automatique de la lecture, taille du texte.
 - **وِردي** — objectifs du jour à cocher ; les objectifs liés (adhkar / Coran) se cochent seuls à la fin de la lecture.
 - **السجل** — carte annuelle, calendrier mensuel, séries, taux de réussite, détail de chaque jour. L'historique est conservé sans limite de durée.
+- **مواقيت الصلاة** — heures de prière calculées sur l'appareil (position GPS, ville ou coordonnées ; méthode Maroc 19°/17° par défaut ; ajustement à la minute), rappel avant chaque prière tant que l'app est ouverte, export `.ics` avec alarmes pour un rappel garanti. Les décalages de la méthode « Maroc » (+5 min Dhuhr et Maghrib) ne sont pas vérifiés contre l'horaire officiel du ministère des Habous.
+- **الأيام البيض** — dates des jours blancs, rappels, export calendrier.
 - **الإعدادات** — thème sombre / clair, taille du texte arabe, export / import d'une sauvegarde JSON.
 
 ## Structure

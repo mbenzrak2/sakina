@@ -2,6 +2,7 @@
 //   adhkar : [{ id:number, title, items:[{ id:number, text, count }] }]        132 categories (حصن المسلم)
 //   quran  : [{ id:1..114, name, tr, type:'meccan'|'medinan', n, verses:[text] }]  Uthmani text
 import { store } from './store.js';
+import { currentPrayer } from './prayer.js';
 
 let adhkarP = null;
 let quranP = null;
@@ -85,6 +86,8 @@ export const SESSIONS = {
 export function defaultSession(catKey) {
   const hr = new Date().getHours();
   if (catKey === '1') return hr < 15 ? 'am' : 'pm';
+  // with a location set, the real prayer times decide which prayer was the last one
+  if (catKey === '27') { const cur = currentPrayer(); if (cur) return cur; }
   if (catKey === '27') return hr < 11 ? 'fajr' : hr < 15 ? 'dhuhr' : hr < 18 ? 'asr' : hr < 20 ? 'maghrib' : 'isha';
   return null;
 }

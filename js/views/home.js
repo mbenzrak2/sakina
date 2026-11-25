@@ -3,6 +3,7 @@ import { store } from '../store.js';
 import { loadQuran } from '../data.js';
 import { hijriSupported } from '../hijri.js';
 import { nextBid, inDaysLabel } from './bid.js';
+import { nextPrayer, formatTime, untilLabel } from '../prayer.js';
 import { h, icon, clear, ring, iconButton, navigate, formatDate, formatHijri, daysLabel, haptic } from '../ui.js';
 
 const MARK =
@@ -60,10 +61,22 @@ async function render(root) {
         h('div', { class: 'row-sub' }, n.state === 'today' ? `اليوم ${n.day} من الشهر الهجري` : formatDate(n.date))),
       h('div', { class: 'row-end' }, icon('chevron', { size: 20 }))));
   };
+  const prayerBox = h('div');
+  const paintPrayer = () => {
+    const n = nextPrayer();
+    clear(prayerBox).append(h('a', { class: 'card bid-card', href: '#/prayer' },
+      h('div', { class: 'row-badge' }, icon('clock', { size: 22 })),
+      h('div', { class: 'row-main' },
+        h('div', { class: 'row-title' }, n ? ['الصلاة القادمة: ', n.label, ' ', h('span', { class: 'num' }, formatTime(n.time))] : 'مواقيت الصلاة'),
+        h('div', { class: 'row-sub' }, n ? untilLabel(n.time) : 'حدّد موقعك لعرض المواقيت والتذكير')),
+      h('div', { class: 'row-end' }, icon('chevron', { size: 20 }))));
+  };
+  const prayerTick = setInterval(paintPrayer, 30000);
   const quick = h('div', { class: 'grid-2' });
   const cont = h('div');
   paintBid();
-  root.append(brand, hero, bidBox, remainingBox,
+  paintPrayer();
+  root.append(brand, hero, prayerBox, bidBox, remainingBox,
     h('div', { class: 'section-title' }, 'وصول سريع'), quick, cont);
 
   const isMorning = now.getHours() < 15;
@@ -136,11 +149,12 @@ async function render(root) {
   }
 
   await Promise.all([paint(), paintContinue()]);
-  return store.on((type) => {
+  const off = store.on((type) => {
     if (type === 'day' || type === 'goals' || type === 'import') paint();
     if (type === 'quran' || type === 'import') paintContinue();
-    if (type === 'settings' || type === 'import') paintBid();
+    if (type === 'settings' || type === 'import') { paintBid(); paintPrayer(); }
   });
+  return () => { clearInterval(prayerTick); off(); };
 }
 
 export const routes = [{ path: '/', tab: 'home', render }];

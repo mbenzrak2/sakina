@@ -595,3 +595,12 @@ body.immersive .fab { bottom: calc(env(safe-area-inset-bottom) + 22px); }
 .bid-stepper .icon-btn:disabled { opacity: 0.35; pointer-events: none; }
 .bid-note { margin: 18px 4px 0; font-size: 13px; color: var(--muted); text-align: center; }
 .bid-fast { margin-top: 10px; }
+
+/* prayer times */
+.pt-list { margin-top: 14px; }
+.pt-row { align-items: center; gap: 10px; }
+.pt-time { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pt-row.is-past .row-title, .pt-row.is-past .pt-time { color: var(--muted); font-weight: 500; }
+.pt-row.is-info .row-title, .pt-row.is-info .pt-time { color: var(--muted); font-weight: 500; font-size: 15px; }
+.pt-row.is-next { background: var(--gold-soft); }
+.pt-row.is-next .row-title, .pt-row.is-next .pt-time { color: var(--gold-2); }

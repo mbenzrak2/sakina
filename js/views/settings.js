@@ -95,7 +95,7 @@ async function render(root) {
       h('p', { style: { marginTop: '10px' } }, 'نصوص الأذكار من كتاب «حصن المسلم» لسعيد بن علي بن وهف القحطاني (مجموعة ',
         h('span', { class: 'num' }, 'rn0x/Adhkar-json'), '). نص القرآن الكريم بالرسم العثماني (مجموعة ',
         h('span', { class: 'num' }, 'risan/quran-json'), '). الخطوط: Amiri و Amiri Quran و Tajawal برخصة SIL OFL.'),
-      h('p', { class: 'muted', style: { marginTop: '10px' } }, 'الإصدار 1.0.0'),
+      h('p', { class: 'muted', style: { marginTop: '10px' } }, 'الإصدار 1.6.0'),
     ),
   );
 }

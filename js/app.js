@@ -9,7 +9,8 @@ import { routes as historyRoutes } from './views/history.js';
 import { routes as counterRoutes } from './views/counter.js';
 import { routes as bidRoutes } from './views/bid.js';
 import { setHijriOffset } from './hijri.js';
-import { checkReminder } from './notify.js';
+import { checkReminder, schedulePrayerReminders } from './notify.js';
+import { routes as prayerRoutes } from './views/prayer.js';
 import { routes as settingsRoutes } from './views/settings.js';
 
 const TABS = [
@@ -20,7 +21,7 @@ const TABS = [
   { id: 'history', path: '/history', label: 'السجل', icon: 'history' },
 ];
 
-const ROUTES = [homeRoutes, adhkarRoutes, quranRoutes, checklistRoutes, historyRoutes, counterRoutes, bidRoutes, settingsRoutes]
+const ROUTES = [homeRoutes, adhkarRoutes, quranRoutes, checklistRoutes, historyRoutes, counterRoutes, bidRoutes, prayerRoutes, settingsRoutes]
   .flat()
   .map((r) => ({ ...r, segs: r.path.split('/').filter(Boolean) }));
 
@@ -149,12 +150,13 @@ async function boot() {
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return;
     checkReminder();
+    schedulePrayerReminders();
     const now = new Date().toDateString();
     if (now !== lastDay) { lastDay = now; await store.toggleGoal('__noop__', false); render(); }
   });
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => checkReminder()).catch((e) => console.warn('SW registration failed', e));
+    navigator.serviceWorker.register('sw.js').then(() => { checkReminder(); schedulePrayerReminders(); }).catch((e) => console.warn('SW registration failed', e));
   }
 }
 boot();
