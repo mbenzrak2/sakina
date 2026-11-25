@@ -1,6 +1,6 @@
 // Sakina service worker — precaches the whole app so it runs with no connection at all.
 // Bump VERSION whenever any file below changes: clients then pick up the new files.
-const VERSION = 'sakina-v1.6.0';
+const VERSION = 'sakina-v1.6.1';
 
 const ASSETS = [
   './',
@@ -18,6 +18,7 @@ const ASSETS = [
   'js/hijri.js',
   'js/notify.js',
   'js/prayer.js',
+  'js/backup.js',
   'js/views/prayer.js',
   'js/views/home.js',
   'js/views/adhkar.js',

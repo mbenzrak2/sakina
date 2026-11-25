@@ -1,6 +1,7 @@
 // Settings — appearance, backup, about.
-import { store, todayKey } from '../store.js';
-import { h, icon, pageHeader, toast, confirmSheet, downloadText } from '../ui.js';
+import { store, parseKey } from '../store.js';
+import { h, icon, pageHeader, toast, confirmSheet, formatDate } from '../ui.js';
+import { exportBackup } from '../backup.js';
 
 async function render(root) {
   const s = store.getSettings();
@@ -46,6 +47,15 @@ async function render(root) {
     });
   } else persistRow.textContent = 'احتفظ بنسخة احتياطية دورية لحماية سجلّك.';
 
+  const lastRow = h('div', { class: 'row-sub' });
+  const paintLast = () => {
+    const last = store.getBackup().last;
+    lastRow.textContent = last
+      ? `آخر نسخة: ${formatDate(parseKey(last))} · يذكّرك التطبيق كل شهر`
+      : 'لم تُنزَّل أي نسخة بعد · ملف يضم أهدافك وأذكارك وسجلّك كاملًا';
+  };
+  paintLast();
+
   root.append(
     pageHeader({ title: 'الإعدادات', back: '/' }),
 
@@ -63,13 +73,9 @@ async function render(root) {
         h('div', null, h('div', { class: 'setting-title' }, 'كل شيء محفوظ على جهازك'), persistRow),
         icon('check', { size: 20, class: 'gold' })),
       h('button', {
-        class: 'row', onclick: async () => {
-          const data = await store.exportAll();
-          downloadText(`sakina-backup-${todayKey()}.json`, JSON.stringify(data));
-          toast('تم تنزيل النسخة الاحتياطية', { icon: 'download' });
-        },
+        class: 'row', onclick: async () => { await exportBackup(); paintLast(); },
       }, h('div', { class: 'row-badge' }, icon('download', { size: 20 })),
-        h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, 'تصدير نسخة احتياطية'), h('div', { class: 'row-sub' }, 'ملف يضم أهدافك، أذكارك، وسجلّك كاملًا'))),
+        h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, 'تصدير نسخة احتياطية'), lastRow)),
       h('button', { class: 'row', onclick: () => file.click() },
         h('div', { class: 'row-badge' }, icon('upload', { size: 20 })),
         h('div', { class: 'row-main' }, h('div', { class: 'row-title' }, 'استعادة من نسخة احتياطية'), h('div', { class: 'row-sub' }, 'عند تغيير الهاتف أو المتصفح'))),
@@ -95,7 +101,7 @@ async function render(root) {
       h('p', { style: { marginTop: '10px' } }, 'نصوص الأذكار من كتاب «حصن المسلم» لسعيد بن علي بن وهف القحطاني (مجموعة ',
         h('span', { class: 'num' }, 'rn0x/Adhkar-json'), '). نص القرآن الكريم بالرسم العثماني (مجموعة ',
         h('span', { class: 'num' }, 'risan/quran-json'), '). الخطوط: Amiri و Amiri Quran و Tajawal برخصة SIL OFL.'),
-      h('p', { class: 'muted', style: { marginTop: '10px' } }, 'الإصدار 1.6.0'),
+      h('p', { class: 'muted', style: { marginTop: '10px' } }, 'الإصدار 1.6.1'),
     ),
   );
 }

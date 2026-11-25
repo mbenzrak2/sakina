@@ -413,6 +413,10 @@ export const store = {
   async setQuran(patch) { await kvSet('quran', { ...this.getQuran(), ...patch }); },
 
   /* backup */
+  /** { last, snooze } date keys: last backup downloaded, reminder postponed until (see backup.js). */
+  getBackup() { return kvGet('backup', {}); },
+  async setBackup(patch) { await kvSet('backup', { ...kvGet('backup', {}), ...patch }); },
+
   async exportAll() {
     return {
       app: 'sakina', version: 1, exportedAt: new Date().toISOString(),

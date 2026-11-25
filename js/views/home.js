@@ -4,6 +4,7 @@ import { loadQuran } from '../data.js';
 import { hijriSupported } from '../hijri.js';
 import { nextBid, inDaysLabel } from './bid.js';
 import { nextPrayer, formatTime, untilLabel } from '../prayer.js';
+import { backupStatus, exportBackup, snoozeBackup } from '../backup.js';
 import { h, icon, clear, ring, iconButton, navigate, formatDate, formatHijri, daysLabel, haptic } from '../ui.js';
 
 const MARK =
@@ -72,11 +73,28 @@ async function render(root) {
       h('div', { class: 'row-end' }, icon('chevron', { size: 20 }))));
   };
   const prayerTick = setInterval(paintPrayer, 30000);
+  // monthly reminder to download a backup (the data exists on this device only)
+  const backupBox = h('div');
+  const paintBackup = async () => {
+    const st = await backupStatus();
+    clear(backupBox);
+    if (!st.due) return;
+    backupBox.append(h('div', { class: 'card backup-card' },
+      h('div', { class: 'backup-head' },
+        h('div', { class: 'row-badge' }, icon('download', { size: 22 })),
+        h('div', { class: 'row-main' },
+          h('div', { class: 'row-title' }, st.never ? 'احفظ نسخة احتياطية من سجلّك' : `مرّ ${st.days} يومًا على آخر نسخة احتياطية`),
+          h('div', { class: 'row-sub bid-wrap' }, 'سجلّك محفوظ على هذا الهاتف فقط: إن حُذفت بيانات المتصفح أو تغيّر الهاتف ضاع.'))),
+      h('div', { class: 'backup-actions' },
+        h('button', { type: 'button', class: 'btn btn-sm btn-ghost', onclick: async () => { await snoozeBackup(); paintBackup(); } }, 'لاحقًا'),
+        h('button', { type: 'button', class: 'btn btn-sm btn-primary', onclick: async () => { await exportBackup(); paintBackup(); } }, 'تنزيل الآن'))));
+  };
+  paintBackup();
   const quick = h('div', { class: 'grid-2' });
   const cont = h('div');
   paintBid();
   paintPrayer();
-  root.append(brand, hero, prayerBox, bidBox, remainingBox,
+  root.append(brand, hero, backupBox, prayerBox, bidBox, remainingBox,
     h('div', { class: 'section-title' }, 'وصول سريع'), quick, cont);
 
   const isMorning = now.getHours() < 15;
@@ -153,6 +171,7 @@ async function render(root) {
     if (type === 'day' || type === 'goals' || type === 'import') paint();
     if (type === 'quran' || type === 'import') paintContinue();
     if (type === 'settings' || type === 'import') { paintBid(); paintPrayer(); }
+    if (type === 'import') paintBackup();
   });
   return () => { clearInterval(prayerTick); off(); };
 }
